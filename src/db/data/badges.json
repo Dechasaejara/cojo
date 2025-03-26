@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "name": "Chemistry Beginner",
+    "description": "Awarded for completing the Chemistry Basics module.",
+    "image_url": "/images/badges/chemistry-beginner.png",
+    "criteria": "Complete the Chemistry Basics module",
+    "earned_at": "2023-01-02T10:00:00Z"
+  }
+]

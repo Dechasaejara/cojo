@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "johndoe@example.com",
+    "phone": "1234567890",
+    "dob": "1990-01-01T00:00:00Z",
+    "schoolName": "Springfield High",
+    "schoolType": "Public",
+    "gradeLevel": "10",
+    "classSection": "A",
+    "languageCode": "en",
+    "badge": "none",
+    "points": 0,
+    "heart": 5,
+    "showOnLeaderboard": true,
+    "createdAt": "2023-01-01T00:00:00Z",
+    "updatedAt": "2023-01-01T00:00:00Z"
+  }
+]

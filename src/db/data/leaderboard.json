@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "username": "JohnDoe",
+    "user_image": "/images/users/johndoe.png",
+    "rank": 1,
+    "points": 100
+  }
+]
