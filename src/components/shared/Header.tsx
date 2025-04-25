@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/store/userStore';
 
-export const MainNav = () => {
+export default function Header() {
   const pathname = usePathname();
   const { streak, totalPoints } = useUserStore();
   const currentStreak = streak?.currentStreak || 0;
@@ -103,7 +103,7 @@ export const MainNav = () => {
       </div>
     </header>
   );
-};
+}
 
 interface NavLinkProps {
   href: string;
@@ -125,5 +125,3 @@ const NavLink: React.FC<NavLinkProps> = ({ href, current, children }) => {
     </Link>
   );
 };
-
-export default MainNav;

@@ -7,16 +7,27 @@ import StreakCard from '@/components/dashboard/StreakCard';
 import BadgesList from '@/components/dashboard/BadgesList';
 import LeaderboardCard from '@/components/dashboard/LeaderboardCard';
 import ModuleCard from '@/components/dashboard/ModuleCard';
-import { modules } from '@/data/mockData';
+import { getAllModules } from '@/db/queries';
 
 export const metadata: Metadata = {
   title: 'Dashboard | CodeDojo',
   description: 'Your coding learning dashboard',
 };
 
-export default function DashboardPage() {
-  // For demo, we'll just show the first 3 modules
-  const featuredModules = modules.filter((module)=> module.lessons.length > 0).slice(0, 2);
+function transformModule(module: any) {
+  return {
+    ...module,
+    requiredPoints: module.required_points,
+    imageUrl: module.image_url,
+  };
+}
+
+export default async function DashboardPage() {
+  // Fetch real data from the database
+  const modules = await getAllModules();
+
+  // For demo, we'll just show the first 3 modules with lessons
+  const featuredModules = modules.filter((module) => module.lessons.length > 0).slice(0, 3);
 
   return (
     <div className="container px-4 mx-auto">

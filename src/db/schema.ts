@@ -7,7 +7,6 @@ import {
   text,
   pgEnum,
   jsonb,
-  bigint,
   boolean,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
@@ -65,6 +64,7 @@ export const Users = pgTable("users", {
   updatedAt: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
 });
 
+// Profiles Table
 export const Profiles = pgTable("profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -93,9 +93,9 @@ export const Badges = pgTable("badges", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description").notNull(),
-  image_url: varchar("image_url", { length: 255 }).notNull(),
+  imageUrl: varchar("image_url", { length: 255 }).notNull(),
   criteria: text("criteria").notNull(),
-  earned_at: timestamp("earned_at", { mode: "string" }),
+  earnedAt: timestamp("earned_at", { mode: "string" }),
 });
 
 // Modules Table
@@ -107,16 +107,16 @@ export const Modules = pgTable("modules", {
   parent: varchar("parent", { length: 100 }),
   level: integer("level").notNull(),
   order: integer("order").unique(),
-  required_points: integer("required_points").notNull(),
-  image_url: varchar("image_url", { length: 255 }).notNull(),
-  created_at: timestamp("created_at", { mode: "string" }).default(sql`now()`),
-  updated_at: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
+  requiredPoints: integer("required_points").notNull(),
+  imageUrl: varchar("image_url", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).default(sql`now()`),
+  updatedAt: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
 });
 
 // Lessons Table
 export const Lessons = pgTable("lessons", {
   id: serial("id").primaryKey(),
-  module_id: integer("module_id")
+  moduleId: integer("module_id")
     .notNull()
     .references(() => Modules.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 100 }).notNull(),
@@ -124,40 +124,40 @@ export const Lessons = pgTable("lessons", {
   slug: varchar("slug", { length: 100 }).notNull(),
   order: integer("order").notNull(),
   points: integer("points").notNull(),
-  completion_time: integer("completion_time").notNull(),
+  completionTime: integer("completion_time").notNull(),
   difficulty: DifficultyEnum("difficulty").notNull(),
-  created_at: timestamp("created_at", { mode: "string" }).default(sql`now()`),
-  updated_at: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
+  createdAt: timestamp("created_at", { mode: "string" }).default(sql`now()`),
+  updatedAt: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
 });
 
-// Quizzes Table
+// Questions Table
 export const Questions = pgTable("questions", {
   id: serial("id").primaryKey(),
-  lesson_id: integer("lesson_id").references(() => Lessons.id, {
+  lessonId: integer("lesson_id").references(() => Lessons.id, {
     onDelete: "cascade",
   }),
   type: QuizTypeEnum("quiz_type").notNull(),
   question: text("question").notNull(),
   options: jsonb("options"),
-  correct_answer: text("correct_answer").notNull(),
+  correctAnswer: text("correct_answer").notNull(),
   explanation: text("explanation"),
-  code_snippet: text("code_snippet"),
+  codeSnippet: text("code_snippet"),
   language: varchar("language", { length: 50 }),
   reference: varchar("reference", { length: 350 }),
   points: integer("points").notNull(),
-  time_limit: integer("time_limit"),
-  created_at: timestamp("created_at", { mode: "string" }).default(sql`now()`),
-  updated_at: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
+  timeLimit: integer("time_limit"),
+  createdAt: timestamp("created_at", { mode: "string" }).default(sql`now()`),
+  updatedAt: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
 });
 
 // Leaderboard Table
 export const Leaderboard = pgTable("leaderboard", {
   id: serial("id").primaryKey(),
-  user_id: integer("user_id")
+  userId: integer("user_id")
     .notNull()
     .references(() => Users.id, { onDelete: "cascade" }),
   username: varchar("username", { length: 50 }).notNull(),
-  user_image: varchar("user_image", { length: 255 }),
+  userImage: varchar("user_image", { length: 255 }),
   rank: integer("rank").notNull(),
   points: integer("points").notNull(),
 });
@@ -165,21 +165,43 @@ export const Leaderboard = pgTable("leaderboard", {
 // User Progress Table
 export const UserProgress = pgTable("user_progress", {
   id: serial("id").primaryKey(),
-  user_id: integer("user_id")
+  userId: integer("user_id")
     .notNull()
     .references(() => Users.id, { onDelete: "cascade" }),
-  module_id: integer("module_id")
+  moduleId: integer("module_id")
     .notNull()
     .references(() => Modules.id, { onDelete: "cascade" }),
-  lesson_id: integer("lesson_id")
+  lessonId: integer("lesson_id")
     .notNull()
     .references(() => Lessons.id, { onDelete: "cascade" }),
   completed: boolean("completed").default(false),
   score: integer("score").notNull(),
-  correct_answers: integer("correct_answers").notNull(),
-  total_questions: integer("total_questions").notNull(),
-  time_spent: integer("time_spent").notNull(),
-  completed_at: timestamp("completed_at", { mode: "string" }),
+  correctAnswers: integer("correct_answers").notNull(),
+  totalQuestions: integer("total_questions").notNull(),
+  timeSpent: integer("time_spent").notNull(),
+  completedAt: timestamp("completed_at", { mode: "string" }),
+});
+
+// Challenges Table
+export const Challenges = pgTable("challenges", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  difficulty: DifficultyEnum("difficulty").notNull(),
+  points: integer("points").notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).default(sql`now()`),
+  updatedAt: timestamp("updated_at", { mode: "string" }).default(sql`now()`),
+});
+
+// Challenge Questions Table
+export const ChallengeQuestions = pgTable("challenge_questions", {
+  id: serial("id").primaryKey(),
+  challengeId: integer("challenge_id")
+    .notNull()
+    .references(() => Challenges.id, { onDelete: "cascade" }),
+  questionId: integer("question_id")
+    .notNull()
+    .references(() => Questions.id, { onDelete: "cascade" }),
 });
 
 // Relations
@@ -189,6 +211,13 @@ export const UserRelations = relations(Users, ({ many }) => ({
   progress: many(UserProgress),
 }));
 
+export const ProfileRelations = relations(Profiles, ({ one }) => ({
+  user: one(Users, {
+    fields: [Profiles.userId],
+    references: [Users.id],
+  }),
+}));
+
 export const ModuleRelations = relations(Modules, ({ many }) => ({
   lessons: many(Lessons),
 }));
@@ -196,47 +225,64 @@ export const ModuleRelations = relations(Modules, ({ many }) => ({
 export const LessonRelations = relations(Lessons, ({ many, one }) => ({
   questions: many(Questions),
   module: one(Modules, {
-    fields: [Lessons.module_id],
+    fields: [Lessons.moduleId],
     references: [Modules.id],
   }),
 }));
 
-export const QuestionRelations = relations(Questions, ({ one }) => ({
+export const QuestionRelations = relations(Questions, ({ one, many }) => ({
   lesson: one(Lessons, {
-    fields: [Questions.lesson_id],
+    fields: [Questions.lessonId],
     references: [Lessons.id],
   }),
+  challengeQuestions: many(ChallengeQuestions),
 }));
 
 export const LeaderboardRelations = relations(Leaderboard, ({ one }) => ({
   user: one(Users, {
-    fields: [Leaderboard.user_id],
+    fields: [Leaderboard.userId],
     references: [Users.id],
   }),
 }));
 
 export const UserProgressRelations = relations(UserProgress, ({ one }) => ({
   user: one(Users, {
-    fields: [UserProgress.user_id],
+    fields: [UserProgress.userId],
     references: [Users.id],
   }),
   module: one(Modules, {
-    fields: [UserProgress.module_id],
+    fields: [UserProgress.moduleId],
     references: [Modules.id],
   }),
   lesson: one(Lessons, {
-    fields: [UserProgress.lesson_id],
+    fields: [UserProgress.lessonId],
     references: [Lessons.id],
   }),
 }));
 
+export const ChallengeRelations = relations(Challenges, ({ many }) => ({
+  challengeQuestions: many(ChallengeQuestions),
+}));
 
-// export types by infering from the schema
+export const ChallengeQuestionRelations = relations(ChallengeQuestions, ({ one }) => ({
+  challenge: one(Challenges, {
+    fields: [ChallengeQuestions.challengeId],
+    references: [Challenges.id],
+  }),
+  question: one(Questions, {
+    fields: [ChallengeQuestions.questionId],
+    references: [Questions.id],
+  }),
+}));
+
+// Export types
 export type User = typeof Users.$inferSelect;
 export type Profile = typeof Profiles.$inferSelect;
 export type Badge = typeof Badges.$inferSelect;
 export type Module = typeof Modules.$inferSelect;
 export type Lesson = typeof Lessons.$inferSelect;
 export type Question = typeof Questions.$inferSelect;
-export type Leaderboard = typeof Leaderboard.$inferSelect;
-export type UserProgress = typeof UserProgress.$inferSelect;
+export type LeaderboardEntry = typeof Leaderboard.$inferSelect;
+export type UserProgressEntry = typeof UserProgress.$inferSelect;
+export type Challenge = typeof Challenges.$inferSelect;
+export type ChallengeQuestion = typeof ChallengeQuestions.$inferSelect;

@@ -1,11 +1,14 @@
-'use client'
-import React from 'react';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import QuizContainer from '@/components/quiz/QuizContainer';
-import { modules } from '@/data/mockData';
+import { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import QuizContainer from "@/components/quiz/QuizContainer";
+import {
+  getModuleBySlug,
+  getLessonBySlug,
+  getLessonsByModuleId,
+  getQuestionsByLessonId,
+} from "@/db/queries";
 
 interface LessonPageProps {
   params: {
@@ -14,61 +17,81 @@ interface LessonPageProps {
   };
 }
 
-// export  function generateMetadata({ params }: LessonPageProps): Metadata {
-//   const courseModule = modules.find((m) => m.slug === params.slug);
-//   const lesson = courseModule?.lessons.find((l) => l.slug === params.lessonSlug);
+/**
+ * Generates dynamic metadata for the lesson page for SEO purposes.
+ * @param {LessonPageProps} params - The page parameters containing module and lesson slugs.
+ * @returns {Promise<Metadata>} - The metadata object with title and description.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; lessonSlug: string }>;
+}): Promise<Metadata> {
+  const module = await getModuleBySlug((await params).slug);
+  const lesson = await getLessonBySlug((await params).lessonSlug);
 
-//   if (!lesson) {
-//     return {
-//       title: 'Lesson Not Found | CodeDojo',
-//     };
-//   }
+  if (!module || !lesson) {
+    return {
+      title: "Lesson Not Found | CodeDojo",
+    };
+  }
 
-//   return {
-//     title: `${lesson.title} | ${courseModule?.title} | CodeDojo`,
-//     description: lesson.description,
-//   };
-// }
+  return {
+    title: `${lesson.title} | ${module.title} | CodeDojo`,
+    description: lesson.description,
+  };
+}
 
-export default async function LessonPage({ params }: LessonPageProps) {
-  const courseModule = await modules.find((m) => m.slug === params.slug);
-  const lesson = await courseModule?.lessons.find((l) => l.slug === params.lessonSlug);
+export default async function LessonPage({
+  params,
+}: {
+  params: Promise<{ slug: string; lessonSlug: string }>;
+}) {
+  const { slug, lessonSlug } = await params;
 
-  if (!courseModule || !lesson) {
+  // Fetch module and lesson data
+  const module = await getModuleBySlug(slug);
+  const lesson = await getLessonBySlug(lessonSlug);
+
+  // Handle case where module or lesson is not found
+  if (!module || !lesson) {
     notFound();
   }
 
-  // Get previous and next lessons for navigation
-  const lessonIndex = courseModule.lessons.findIndex((l) => l.id === lesson.id);
-  const previousLesson = lessonIndex > 0 ? courseModule.lessons[lessonIndex - 1] : null;
-  const nextLesson = lessonIndex < courseModule.lessons.length - 1
-    ? courseModule.lessons[lessonIndex + 1]
-    : null;
+  // Fetch all lessons for navigation
+  const lessons = await getLessonsByModuleId(module.id);
+  const lessonIndex = lessons.findIndex((l) => l.id === lesson.id);
+  const previousLesson = lessonIndex > 0 ? lessons[lessonIndex - 1] : null;
+  const nextLesson =
+    lessonIndex < lessons.length - 1 ? lessons[lessonIndex + 1] : null;
 
+  // Fetch and map quiz questions
+  const questions = await getQuestionsByLessonId(lesson.id);
   return (
     <div className="container px-4 mx-auto">
       <div className="max-w-4xl mx-auto">
+        {/* Navigation back to module */}
         <div className="mb-6">
           <Link
-            href={`/modules/${courseModule.slug}`}
+            href={`/modules/${module.slug}`}
             className="text-sm text-blue-600 hover:underline mb-2 inline-block"
           >
-            ← Back to {courseModule.title}
+            ← Back to {module.title}
           </Link>
 
+          {/* Lesson title and navigation buttons */}
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">{lesson.title}</h1>
 
             <div className="flex gap-2">
               {previousLesson && (
-                <Link href={`/modules/${courseModule.slug}/${previousLesson.slug}`}>
+                <Link href={`/modules/${module.slug}/${previousLesson.slug}`}>
                   <Button variant="outline" size="sm">
                     <svg
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
                       className="mr-1"
                     >
                       <path
@@ -85,7 +108,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               )}
 
               {nextLesson && (
-                <Link href={`/modules/${courseModule.slug}/${nextLesson.slug}`}>
+                <Link href={`/modules/${module.slug}/${nextLesson.slug}`}>
                   <Button variant="outline" size="sm">
                     Next
                     <svg
@@ -93,7 +116,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
                       className="ml-1"
                     >
                       <path
@@ -111,17 +133,16 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </div>
         </div>
 
-        {/* Lesson content would normally go here - we're going straight to quizzes for this demo */}
+        {/* Quiz content */}
         <div className="mb-8">
           <QuizContainer
             lesson={{
               id: lesson.id,
               title: lesson.title,
-              quizzes: lesson.quizzes,
+              questions
             }}
             onComplete={() => {
-              // This would navigate to the next lesson or back to module in real app
-              // For now, we'll just let the quiz component handle this
+              // Add logic here for quiz completion if needed
             }}
           />
         </div>

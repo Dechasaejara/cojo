@@ -1,24 +1,28 @@
-import React from 'react';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { modules } from '@/data/mockData';
+import React from "react";
+import { Metadata, ResolvingMetadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { getCompletedLessonIds, getModuleBySlug } from "@/db/queries";
 
 interface ModulePageProps {
   params: {
     slug: string;
   };
 }
-
-export function generateMetadata({ params }: ModulePageProps): Metadata {
-  const courseModule = modules.find((m) => m.slug === params.slug);
+export async function generateMetadata(
+  { params }: ModulePageProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  // read route params
+  const { slug } = await params;
+  const courseModule = await getModuleBySlug(slug);
 
   if (!courseModule) {
     return {
-      title: 'Module Not Found | CodeDojo',
+      title: "Module Not Found | CodeDojo",
     };
   }
 
@@ -28,21 +32,31 @@ export function generateMetadata({ params }: ModulePageProps): Metadata {
   };
 }
 
-export default function ModulePage({ params }: ModulePageProps) {
-  const courseModule = modules.find((m) => m.slug === params.slug);
+export default async function ModulePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const courseModule = await getModuleBySlug(slug);
 
   if (!courseModule) {
     notFound();
   }
 
-  // In a real app, this would come from the database
-  const completedLessonIds = ['lesson-1'];
+  // generate from user progress tracking system
+  const completedLessonIds = await getCompletedLessonIds(1); // Replace with actual function to get completed lesson IDs
+
+  // Replace with actual function to get completed lesson IDs
 
   return (
     <div className="container px-4 mx-auto">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
-          <Link href="/modules" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
+          <Link
+            href="/modules"
+            className="text-sm text-blue-600 hover:underline mb-2 inline-block"
+          >
             ← Back to Modules
           </Link>
           <h1 className="text-3xl font-bold">{courseModule.title}</h1>
@@ -50,7 +64,9 @@ export default function ModulePage({ params }: ModulePageProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium">Level {courseModule.level}</span>
+          <span className="text-sm font-medium">
+            Level {courseModule.level}
+          </span>
           <Button variant="outline">Module Overview</Button>
         </div>
       </div>
@@ -62,12 +78,15 @@ export default function ModulePage({ params }: ModulePageProps) {
           {courseModule.lessons.map((lesson, index) => {
             const isCompleted = completedLessonIds.includes(lesson.id);
             const isLocked =
-              index > 0 && !completedLessonIds.includes(courseModule.lessons[index - 1].id);
+              index > 0 &&
+              !completedLessonIds.includes(courseModule.lessons[index - 1].id);
 
             return (
               <Card
                 key={lesson.id}
-                className={`transition-all ${isLocked ? 'opacity-70' : 'hover:border-green-200'}`}
+                className={`transition-all ${
+                  isLocked ? "opacity-70" : "hover:border-green-200"
+                }`}
               >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -75,8 +94,8 @@ export default function ModulePage({ params }: ModulePageProps) {
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           isCompleted
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-100 text-gray-700'
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-100 text-gray-700"
                         }`}
                       >
                         {isCompleted ? (
@@ -102,7 +121,9 @@ export default function ModulePage({ params }: ModulePageProps) {
 
                       <div>
                         <h3 className="font-semibold">{lesson.title}</h3>
-                        <p className="text-sm text-gray-600">{lesson.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {lesson.description}
+                        </p>
                       </div>
                     </div>
 
@@ -158,13 +179,10 @@ export default function ModulePage({ params }: ModulePageProps) {
 
                   <div className="mt-4">
                     <div className="flex justify-between text-sm mb-1">
-                      <span>{lesson.quizzes.length} quizzes</span>
+                      <span>{lesson.questions.length} quizzes</span>
                       <span className="text-gray-500">{lesson.difficulty}</span>
                     </div>
-                    <Progress
-                      value={isCompleted ? 100 : 0}
-                      className="h-1.5"
-                    />
+                    <Progress value={isCompleted ? 100 : 0} className="h-1.5" />
                   </div>
                 </CardContent>
 
@@ -198,7 +216,10 @@ export default function ModulePage({ params }: ModulePageProps) {
                       Complete Previous Lessons
                     </Button>
                   ) : isCompleted ? (
-                    <Link href={`/modules/${courseModule.slug}/${lesson.slug}`} className="w-full">
+                    <Link
+                      href={`/modules/${courseModule.slug}/${lesson.slug}`}
+                      className="w-full"
+                    >
                       <Button variant="outline" className="w-full">
                         <svg
                           width="16"
@@ -220,7 +241,10 @@ export default function ModulePage({ params }: ModulePageProps) {
                       </Button>
                     </Link>
                   ) : (
-                    <Link href={`/modules/${courseModule.slug}/${lesson.slug}`} className="w-full">
+                    <Link
+                      href={`/modules/${courseModule.slug}/${lesson.slug}`}
+                      className="w-full"
+                    >
                       <Button className="w-full">Start Lesson</Button>
                     </Link>
                   )}

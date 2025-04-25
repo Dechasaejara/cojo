@@ -1,25 +1,27 @@
 import React from 'react';
 import { Metadata } from 'next';
 import ModuleCard from '@/components/dashboard/ModuleCard';
-import { modules } from '@/data/mockData';
+import { getAllModules } from '@/db/queries';
+
 
 export const metadata: Metadata = {
   title: 'Modules | CodeDojo',
   description: 'Browse all coding modules',
 };
 
-export default function ModulesPage() {
-const filteredModules = modules.filter((module) => module.lessons.length > 0);
+export default async function ModulesPage() {
+  const modules= await getAllModules();
+  const filteredModules = modules.filter((module) => module.lessons && module.lessons.length > 0);
 
-  // Group modules by level
-  const modulesByLevel = filteredModules.reduce((acc, module) => {
+  // Group modules by  level
+  const modulesByLevel = filteredModules.reduce((acc: Record<number, typeof filteredModules>, module) => {
     const level = module.level;
     if (!acc[level]) {
       acc[level] = [];
     }
     acc[level].push(module);
     return acc;
-  }, {} as Record<number, typeof modules>);
+  }, {});
 
   // Get sorted level numbers
   const levels = Object.keys(modulesByLevel)

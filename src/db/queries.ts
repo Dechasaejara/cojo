@@ -12,16 +12,54 @@ import {
 } from "./schema";
 import { asc, desc, eq } from "drizzle-orm";
 
+import { Challenges } from "./schema";
+
 // Get the authenticated user's progress
 export const getUserProgress = cache(async (userId: number) => {
   if (!userId) return null;
 
   return await db.query.UserProgress.findFirst({
-    where: eq(UserProgress.user_id, userId),
+    where: eq(UserProgress.userId, userId),
     with: {
       module: true,
       lesson: true,
     },
+  });
+});
+
+// Get all challenges
+export const getAllChallenges = cache(async () => {
+  console.log("Fetching all challenges");
+  return await db.query.Challenges.findMany({
+    orderBy: [asc(Challenges.createdAt)],
+  });
+});
+
+import { ChallengeQuestions } from "./schema";
+
+// Get challenge by ID
+export const getChallengeById = cache(async (id: number) => {
+  return await db.query.Challenges.findFirst({
+    where: eq(Challenges.id, id),
+  });
+});
+
+import { sql } from "drizzle-orm";
+
+// Get questions for a specific challenge
+export const getQuestionsByChallengeId = cache(async (challengeId: number) => {
+  const challengeQuestions = await db.query.ChallengeQuestions.findMany({
+    where: eq(ChallengeQuestions.challengeId, challengeId),
+  });
+
+  const questionIds = challengeQuestions.map((cq) => cq.questionId);
+
+  if (questionIds.length === 0) {
+    return [];
+  }
+
+  return await db.query.Questions.findMany({
+    where: sql`id = ANY(${questionIds})`,
   });
 });
 
@@ -58,7 +96,7 @@ export const getAllModules = cache(async () => {
         orderBy: [asc(Lessons.difficulty), asc(Lessons.order)],
         with: {
           questions: {
-            orderBy: [asc(Questions.lesson_id), asc(Questions.id)],
+            orderBy: [asc(Questions.lessonId), asc(Questions.id)],
           },
         },
       },
@@ -84,12 +122,53 @@ export const getModuleById = cache(async (id: number) => {
 // Get all lessons for a specific module
 export const getLessonsByModuleId = cache(async (moduleId: number) => {
   return await db.query.Lessons.findMany({
-    where: eq(Lessons.module_id, moduleId),
+    where: eq(Lessons.moduleId, moduleId),
     orderBy: [asc(Lessons.order)],
     with: {
       questions: true,
     },
   });
+});
+
+// getModuleBySlug
+export const getModuleBySlug = cache(async (slug: string) => {
+  return await db.query.Modules.findFirst({
+    where: eq(Modules.slug, slug),
+    with: {
+      lessons: {
+        orderBy: [asc(Lessons.order)],
+        with: {
+          questions: true,
+        },
+      },
+    },
+  });
+});
+
+// getLessonBySlug
+export const getLessonBySlug = cache(async (slug: string) => {
+  return await db.query.Lessons.findFirst({
+    where: eq(Lessons.slug, slug),
+    with: {
+      questions: {
+        orderBy: [asc(Questions.id)],
+      },
+    },
+  });
+});
+
+// getCompletedLessonIds
+export const getCompletedLessonIds = cache(async (userId: number) => {
+  if (!userId) return [];
+
+  const progress = await db.query.UserProgress.findMany({
+    where: eq(UserProgress.userId, userId),
+    with: {
+      lesson: true,
+    },
+  });
+
+  return progress.map((p) => p.lesson.id);
 });
 
 // Get a specific lesson by ID
@@ -107,7 +186,7 @@ export const getLessonById = cache(async (id: number) => {
 // Get questions for a specific lesson
 export const getQuestionsByLessonId = cache(async (lessonId: number) => {
   return await db.query.Questions.findMany({
-    where: eq(Questions.lesson_id, lessonId),
+    where: eq(Questions.lessonId, lessonId),
     orderBy: [asc(Questions.id)],
   });
 });
@@ -118,7 +197,7 @@ export const getUserProgressByLessonId = cache(
     if (!userId) return null;
 
     return await db.query.UserProgress.findFirst({
-      where: eq(UserProgress.lesson_id, lessonId),
+      where: eq(UserProgress.lessonId, lessonId),
     });
   }
 );
@@ -151,7 +230,7 @@ export const getUserProgressByModuleId = cache(
     if (!userId) return null;
 
     return await db.query.UserProgress.findMany({
-      where: eq(UserProgress.module_id, moduleId),
+      where: eq(UserProgress.moduleId, moduleId),
       with: {
         lesson: true,
       },
@@ -184,7 +263,7 @@ export const getUserDetails = cache(async (userId: number) => {
 
   // Fetch user progress
   const progress = await db.query.UserProgress.findMany({
-    where: eq(UserProgress.user_id, userId),
+    where: eq(UserProgress.userId, userId),
     with: {
       module: true,
       lesson: true,
@@ -193,7 +272,7 @@ export const getUserDetails = cache(async (userId: number) => {
 
   // Fetch leaderboard data for the user
   const leaderboardEntry = await db.query.Leaderboard.findFirst({
-    where: eq(Leaderboard.user_id, userId),
+    where: eq(Leaderboard.userId, userId),
   });
 
   return {

@@ -3,17 +3,17 @@
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Quiz } from '@/types';
 import { useQuizStore } from '@/store/quizStore';
 import { getQuizTypeName } from '@/utils/quizUtils';
 import MultipleChoiceQuiz from './MultipleChoiceQuiz';
 import { Progress } from '@/components/ui/progress';
+import { Question } from '@/db/schema';
 
 interface QuizContainerProps {
   lesson: {
-    id: string;
+    id: number;
     title: string;
-    quizzes: Quiz[];
+    questions: Question[];
   };
   onComplete: () => void;
 }
@@ -33,13 +33,13 @@ export const QuizContainer: React.FC<QuizContainerProps> = ({ lesson, onComplete
 
   useEffect(() => {
     // Start the quiz with the lesson's quizzes
-    startQuiz(lesson.quizzes.filter((q) => q.type == 'multiple-choice'));
+    startQuiz(lesson.questions.filter((q) => q.type == 'multiple-choice'));
 
     // Cleanup when component unmounts
     return () => {
       resetQuiz();
     };
-  }, [lesson.quizzes, startQuiz, resetQuiz]);
+  }, [lesson.questions, startQuiz, resetQuiz]);
 
   if (!currentQuiz && !isQuizComplete) {
     return (

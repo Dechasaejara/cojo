@@ -1,127 +1,157 @@
-// User interfaces
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  image?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  points: number;
-  streak: number;
-  level: number;
-  completedLessons: string[];
-  currentModule: string;
-  badges: Badge[];
-}
+// // User interfaces
+// export interface User {
+//   id: number;
+//   code: string;
+//   username: string;
+//   role: "admin" | "member" | "moderator" | "partner" | "contributor" | "user";
+//   userImage?: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
-// Course content types
+// export interface Profile {
+//   id: number;
+//   userId: number;
+//   firstName: string;
+//   lastName: string;
+//   email?: string;
+//   phone?: string;
+//   dob: string;
+//   schoolName?: string;
+//   schoolType?: string;
+//   gradeLevel?: string;
+//   classSection?: string;
+//   languageCode?: string;
+//   badge: "none" | "basic" | "bronze" | "silver" | "gold" | "platinum";
+//   points: number;
+//   heart: number;
+//   showOnLeaderboard: boolean;
+//   createdAt: string;
+//   updatedAt: string;
+// }
+
+// // Course content types
 export interface Module {
-  id: string;
+  id: number;
   title: string;
   description: string;
   slug: string;
+  parent?: string;
   level: number;
-  lessons: Lesson[];
+  order?: number;
   requiredPoints: number;
-  imageUrl?: string;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  lessons?: Lesson[]; // Optional, to include lessons in the module
 }
 
 export interface Lesson {
-  id: string;
-  moduleId: string;
+  id: number;
+  moduleId: number;
   title: string;
   description: string;
   slug: string;
   order: number;
-  quizzes: Quiz[];
   points: number;
   completionTime: number; // in minutes
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Quiz types
-export interface Quiz {
-  id: string;
-  lessonId: string;
-  type: QuizType;
-  question: string;
-  options?: string[];
-  correctAnswer: string | string[];
-  explanation: string;
-  codeSnippet?: string;
-  language?: string;
-  points: number;
-  timeLimit?: number; // in seconds
-}
+// // Quiz types
+// export interface Quiz {
+//   id: number;
+//   lessonId?: number | null; // Nullable for challenge questions
+//   type:
+//     | "multiple-choice"
+//     | "fill-in-the-blank"
+//     | "code-completion"
+//     | "bug-fixing"
+//     | "true-false"
+//     | "match-pairs"
+//     | "drag-drop";
+//   question: string;
+//   options?: string[]; // JSONB in schema, can be any JSON-compatible type
+//   correctAnswer: string;
+//   explanation?: string;
+//   codeSnippet?: string;
+//   language?: string;
+//   reference?: string;
+//   points: number;
+//   timeLimit?: number; // in seconds
+//   createdAt: string;
+//   updatedAt: string;
+// }
+// export interface Question {
+//   id: number;
+//   lessonId: number;
+//   type:
+//     | "multiple-choice"
+//     | "fill-in-the-blank"
+//     | "code-completion"
+//     | "bug-fixing"
+//     | "true-false"
+//     | "match-pairs"
+//     | "drag-drop";
+//   question: string;
+//   options?: string[]; // JSONB in schema, can be any JSON-compatible type
+//   correctAnswer: string;
+//   explanation?: string; // explanation of the correct answer
+//   codeSnippet?: string; // code snippet for code-completion questions
+//   language?: string; // programming language for code-completion questions
+//   reference?: string; // reference link for additional information
+//   points: number; // points awarded for correct answer
+//   timeLimit?: number; // time limit for answering the question in seconds
+//   createdAt: string; // timestamp of question creation
+//   updatedAt: string; // timestamp of last update
+// }
+// // Progress tracking
+// export interface UserProgress {
+//   id: number;
+//   userId: number;
+//   moduleId: number;
+//   lessonId: number;
+//   completed: boolean;
+//   score: number;
+//   correctAnswers: number;
+//   totalQuestions: number;
+//   timeSpent: number; // in seconds
+//   completedAt?: string;
+// }
 
-export type QuizType =
-  | 'multiple-choice'
-  | 'code-completion'
-  | 'bug-fixing'
-  | 'match-pairs'
-  | 'drag-drop'
-  | 'true-false'
-  | 'fill-in-the-blank';
+// // Gamification
+// export interface Badge {
+//   id: number;
+//   name: string;
+//   description: string;
+//   imageUrl: string;
+//   criteria: string;
+//   earnedAt?: string;
+// }
 
-// Progress tracking
-export interface UserProgress {
-  userId: string;
-  moduleId: string;
-  lessonId: string;
-  completed: boolean;
-  score: number;
-  correctAnswers: number;
-  totalQuestions: number;
-  timeSpent: number; // in seconds
-  completedAt?: Date;
-}
+// export interface LeaderboardEntry {
+//   id: number;
+//   userId: number;
+//   username: string;
+//   userImage?: string;
+//   rank: number;
+//   points: number;
+// }
 
-export interface UserQuizAnswer {
-  userId: string;
-  quizId: string;
-  userAnswer: string | string[];
-  isCorrect: boolean;
-  timeTaken: number; // in seconds
-  submittedAt: Date;
-}
+// export interface Challenge {
+//   id: number;
+//   title: string;
+//   description: string;
+//   difficulty: "beginner" | "intermediate" | "advanced";
+//   points: number;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
-// Gamification
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  criteria: string;
-  earnedAt?: Date;
-}
-
-export interface Leaderboard {
-  id: string;
-  name: string;
-  type: 'daily' | 'weekly' | 'monthly' | 'all-time';
-  entries: LeaderboardEntry[];
-}
-
-export interface LeaderboardEntry {
-  userId: string;
-  username: string;
-  userImage?: string;
-  rank: number;
-  points: number;
-}
-
-export interface Streak {
-  userId: string;
-  currentStreak: number;
-  longestStreak: number;
-  lastActivityDate: Date;
-}
-
-export interface UserSettings {
-  userId: string;
-  dailyGoal: number; // in points
-  notifications: boolean;
-  soundEffects: boolean;
-  theme: 'light' | 'dark' | 'system';
-  language: string;
-}
+// export interface ChallengeQuestion {
+//   id: number;
+//   challengeId: number;
+//   questionId: number;
+// }

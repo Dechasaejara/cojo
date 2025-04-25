@@ -4,9 +4,9 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Module } from '@/types';
 import { useUserStore } from '@/store/userStore';
 import Link from 'next/link';
+import { Module } from '@/types';
 
 interface ModuleCardProps {
   module: Module;
@@ -16,6 +16,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
   const { completedLessons, totalPoints, setCurrentModule } = useUserStore();
 
   // Calculate progress percentage
+  
   const totalLessons = module.lessons.length;
   const completedLessonsCount = module.lessons
     .filter(lesson => completedLessons.includes(lesson.id))

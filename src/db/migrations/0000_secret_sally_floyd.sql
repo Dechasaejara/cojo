@@ -12,6 +12,22 @@ CREATE TABLE "badges" (
 	"earned_at" timestamp
 );
 --> statement-breakpoint
+CREATE TABLE "challenge_questions" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"challenge_id" integer NOT NULL,
+	"question_id" integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "challenges" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"title" varchar(100) NOT NULL,
+	"description" text NOT NULL,
+	"difficulty" "difficulty" NOT NULL,
+	"points" integer NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "leaderboard" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
@@ -114,6 +130,8 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
+ALTER TABLE "challenge_questions" ADD CONSTRAINT "challenge_questions_challenge_id_challenges_id_fk" FOREIGN KEY ("challenge_id") REFERENCES "public"."challenges"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "challenge_questions" ADD CONSTRAINT "challenge_questions_question_id_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "leaderboard" ADD CONSTRAINT "leaderboard_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lessons" ADD CONSTRAINT "lessons_module_id_modules_id_fk" FOREIGN KEY ("module_id") REFERENCES "public"."modules"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "profiles" ADD CONSTRAINT "profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

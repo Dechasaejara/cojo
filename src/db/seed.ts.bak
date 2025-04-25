@@ -1,0 +1,279 @@
+import { db } from "./drizzle";
+import {
+  Users,
+  Profiles,
+  Modules,
+  Lessons,
+  Questions,
+  UserProgress,
+  Badges,
+  Leaderboard,
+  Challenges,
+} from "./schema";
+import { faker } from '@faker-js/faker';
+
+function generateFakeUsers(count: number) {
+  const fakeUsers = [];
+  for (let i = 0; i < count; i++) {
+    fakeUsers.push({
+      id: i + 1,
+      name: faker.name.fullName(),
+      email: faker.internet.email(),
+      image: faker.image.avatar(),
+      createdAt: faker.date.past(),
+      updatedAt: faker.date.recent(),
+      points: faker.datatype.number({ min: 0, max: 1000 }),
+      streak: faker.datatype.number({ min: 0, max: 30 }),
+      level: faker.datatype.number({ min: 1, max: 10 }),
+      role: faker.helpers.arrayElement([
+        "admin",
+        "member",
+        "moderator",
+        "partner",
+        "contributor",
+        "user",
+        null,
+        undefined,
+      ]),
+    });
+  }
+  return fakeUsers;
+}
+
+function generateFakeProfiles(users: any[]) {
+  return users.map((user) => ({
+    userId: user.id,
+    bio: faker.lorem.sentence(),
+    badge: faker.helpers.arrayElement([
+      "none",
+      "basic",
+      "bronze",
+      "silver",
+      "gold",
+      "platinum",
+      null,
+      undefined,
+    ]),
+    showOnLeaderboard: faker.datatype.boolean(),
+    points: user.points,
+  }));
+}
+
+function generateFakeModules(count: number) {
+  const fakeModules = [];
+  for (let i = 0; i < count; i++) {
+    fakeModules.push({
+      id: i + 1,
+      title: faker.lorem.words(2),
+      description: faker.lorem.sentences(2),
+      level: faker.datatype.number({ min: 1, max: 10 }),
+      createdAt: faker.date.past(),
+      updatedAt: faker.date.recent(),
+    });
+  }
+  return fakeModules;
+}
+
+function generateFakeLessons(modules: any[], lessonsPerModule: number) {
+  const fakeLessons = [];
+  let lessonId = 1;
+  const difficulties = ["beginner", "intermediate", "advanced"];
+  for (const module of modules) {
+    for (let i = 0; i < lessonsPerModule; i++) {
+      fakeLessons.push({
+        id: lessonId++,
+        moduleId: module.id,
+        title: faker.lorem.words(3),
+        description: faker.lorem.sentences(2),
+        difficulty: faker.helpers.arrayElement(difficulties),
+        order: i + 1,
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
+      });
+    }
+  }
+  return fakeLessons;
+}
+
+function generateFakeQuestions(lessons: any[], questionsPerLesson: number) {
+  const fakeQuestions = [];
+  let questionId = 1;
+  const types = [
+    "multiple-choice",
+    "fill-in-the-blank",
+    "code-completion",
+    "bug-fixing",
+    "true-false",
+    "match-pairs",
+    "drag-drop",
+  ];
+  for (const lesson of lessons) {
+    for (let i = 0; i < questionsPerLesson; i++) {
+      fakeQuestions.push({
+        id: questionId++,
+        lessonId: lesson.id,
+        questionText: faker.lorem.sentence(),
+        type: faker.helpers.arrayElement(types),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
+      });
+    }
+  }
+  return fakeQuestions;
+}
+
+function generateFakeChallenges(count: number) {
+  const difficulties = ["beginner", "intermediate", "advanced"];
+  const fakeChallenges = [];
+  for (let i = 0; i < count; i++) {
+    fakeChallenges.push({
+      id: i + 1,
+      title: faker.lorem.words(3),
+      description: faker.lorem.sentences(2),
+      difficulty: faker.helpers.arrayElement(difficulties),
+      points: faker.datatype.number({ min: 10, max: 100 }),
+      createdAt: faker.date.past(),
+      updatedAt: faker.date.recent(),
+    });
+  }
+  return fakeChallenges;
+}
+
+function generateFakeUserProgress(users: any[], lessons: any[]) {
+  const fakeUserProgress = [];
+  for (const user of users) {
+    for (const lesson of lessons) {
+      fakeUserProgress.push({
+        userId: user.id,
+        lessonId: lesson.id,
+        moduleId: lesson.moduleId,
+        completed: faker.datatype.boolean(),
+        score: faker.datatype.number({ min: 0, max: 100 }),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
+      });
+    }
+  }
+  return fakeUserProgress;
+}
+
+function generateFakeBadges(count: number) {
+  const badgeTypes = ["none", "basic", "bronze", "silver", "gold", "platinum"];
+  const fakeBadges = [];
+  for (let i = 0; i < count; i++) {
+    fakeBadges.push({
+      id: i + 1,
+      name: faker.lorem.word(),
+      description: faker.lorem.sentence(),
+      type: faker.helpers.arrayElement(badgeTypes),
+      createdAt: faker.date.past(),
+      updatedAt: faker.date.recent(),
+    });
+  }
+  return fakeBadges;
+}
+
+function generateFakeLeaderboard(users: any[]) {
+  const fakeLeaderboard = users.map((user) => ({
+    userId: user.id,
+    points: user.points,
+    rank: faker.datatype.number({ min: 1, max: 100 }),
+    createdAt: faker.date.past(),
+    updatedAt: faker.date.recent(),
+  }));
+  return fakeLeaderboard;
+}
+
+async function seedDatabase() {
+  try {
+    // delete existing data
+    await db.delete(Users);
+    await db.delete(Profiles);
+    await db.delete(Modules);
+    await db.delete(Lessons);
+    await db.delete(Questions);
+    await db.delete(Challenges);
+    await db.delete(UserProgress);
+    await db.delete(Badges);
+    await db.delete(Leaderboard);
+
+    // generate fake data
+    const fakeUsers = generateFakeUsers(10);
+    const fakeProfiles = generateFakeProfiles(fakeUsers);
+    const fakeModules = generateFakeModules(5);
+    const fakeLessons = generateFakeLessons(fakeModules, 3);
+    const fakeQuestions = generateFakeQuestions(fakeLessons, 4);
+    const fakeChallenges = generateFakeChallenges(10);
+    const fakeUserProgress = generateFakeUserProgress(fakeUsers, fakeLessons);
+    const fakeBadges = generateFakeBadges(10);
+    const fakeLeaderboard = generateFakeLeaderboard(fakeUsers);
+
+    // insert data
+    await db.insert(Users).values(
+      fakeUsers.map((user) => ({
+        ...user,
+        role: user.role as
+          | "admin"
+          | "member"
+          | "moderator"
+          | "partner"
+          | "contributor"
+          | "user"
+          | null
+          | undefined,
+      }))
+    );
+    await db.insert(Profiles).values(
+      fakeProfiles.map((profile) => ({
+        ...profile,
+        badge: profile.badge as
+          | "none"
+          | "basic"
+          | "bronze"
+          | "silver"
+          | "gold"
+          | "platinum"
+          | null
+          | undefined,
+      }))
+    );
+    await db.insert(Modules).values(fakeModules);
+    await db.insert(Lessons).values(
+      fakeLessons.map((lesson) => ({
+        ...lesson,
+        difficulty: lesson.difficulty as
+          | "beginner"
+          | "intermediate"
+          | "advanced",
+      }))
+    );
+    await db.insert(Questions).values(
+      fakeQuestions.map((question) => ({
+        ...question,
+        type: question.type as
+          | "multiple-choice"
+          | "fill-in-the-blank"
+          | "code-completion"
+          | "bug-fixing"
+          | "true-false"
+          | "match-pairs"
+          | "drag-drop",
+      }))
+    );
+    await db.insert(Challenges).values(
+      fakeChallenges.map((challenge) => ({
+        ...challenge,
+        difficulty: challenge.difficulty as "beginner" | "intermediate" | "advanced",
+      }))
+    );
+    await db.insert(UserProgress).values(fakeUserProgress);
+    await db.insert(Badges).values(fakeBadges);
+    await db.insert(Leaderboard).values(fakeLeaderboard);
+
+    console.log("Database seeded successfully!");
+  } catch (error) {
+    console.error("Error seeding database:", error);
+  }
+}
+
+seedDatabase();
